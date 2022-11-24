@@ -115,7 +115,11 @@ class Example(test.Ui_Dialog):
         elif self.comboBox.currentText().__eq__("切换打开下一个工作簿"):
             self.change_next_sheet()
         elif self.comboBox.currentText().__eq__("图像识别输出到右侧单元格"):
-            self.download_and_ocr()
+            reply = QtWidgets.QMessageBox.question(None, '确认', '使用GPU模式输出', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            if reply == QtWidgets.QMessageBox.Yes:
+                self.download_and_ocr(True)
+            else:
+                self.download_and_ocr(False)
 
 
     def change_next_sheet(self):
@@ -186,7 +190,7 @@ class Example(test.Ui_Dialog):
                         # 背景颜色（红色）
                         self.tableWidget.item(i, j).setBackground(QtGui.QBrush(QtGui.QColor(255, 0, 0)))
 
-    def download_and_ocr(self):
+    def download_and_ocr(self, gpu_boolean):
         global input_table
         if len(index_cell) > 0:
             print(index_cell)
@@ -194,7 +198,7 @@ class Example(test.Ui_Dialog):
                 cell_str = str(cell)
                 print(self.tableWidget.item(int(cell_str.split(',')[0]), int(cell_str.split(',')[1])).text())
                 path = ocrTest.download_url(str(self.tableWidget.item(int(cell_str.split(',')[0]), int(cell_str.split(',')[1])).text()))
-                ocr_result = ocrTest.pic_ocr(path)
+                ocr_result = ocrTest.pic_ocr(path, gpu_boolean)
                 if (ocr_result is not None) and (not ''.__eq__(ocr_result)):
                     self.tableWidget.item(int(cell_str.split(',')[0]), int(cell_str.split(',')[1]) + 1).setText(ocr_result)
                     input_table.iloc[int(cell_str.split(',')[0]), int(cell_str.split(',')[1]) + 1] = ocr_result
@@ -203,7 +207,7 @@ class Example(test.Ui_Dialog):
             for column in index_column:
                 for i in range(self.tableWidget.rowCount()):
                     path = ocrTest.download_url(str(self.tableWidget.item(i, int(column)).text()))
-                    ocr_result = ocrTest.pic_ocr(path)
+                    ocr_result = ocrTest.pic_ocr(path, gpu_boolean)
                     if (ocr_result is not None) and (not ''.__eq__(ocr_result)):
                         self.tableWidget.item(i, int(column) + 1).setText(ocr_result)
                         input_table.iloc[i, int(column) + 1] = ocr_result

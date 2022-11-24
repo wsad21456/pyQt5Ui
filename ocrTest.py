@@ -3,10 +3,10 @@
 # 例如`ch`, `en`, `fr`, `german`, `korean`, `japan`
 # --use_angle_cls true设置使用方向分类器识别180度旋转文字
 import paddleOCR.paddleocr
-def pic_ocr(img_path):
+def pic_ocr(img_path, gpu_boolean):
     if (img_path is not None) and (not ''.__eq__(img_path)) and (os.path.exists(img_path)):
         ocr = paddleOCR.paddleocr.PaddleOCR(use_angle_cls=True, lang="ch",
-                                            use_gpu=True)  # need to run only once to download and load model into memory
+                                            use_gpu=gpu_boolean)  # need to run only once to download and load model into memory
         result = ocr.ocr(img_path)
         str_result = []
         for idx in range(len(result)):
