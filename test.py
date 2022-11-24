@@ -78,7 +78,7 @@ class Ui_Dialog(object):
         self.pushButton_2.setText(_translate("Dialog", "打开"))
         self.comboBox.setItemText(0, _translate("Dialog", "常用功能"))
         self.comboBox.setItemText(1, _translate("Dialog", "切换打开下一个工作簿"))
-        self.comboBox.setItemText(2, _translate("Dialog", "00002"))
+        self.comboBox.setItemText(2, _translate("Dialog", "图像识别输出到右侧单元格"))
         self.pushButton_3.setText(_translate("Dialog", "确定"))
         self.pushButton_4.setText(_translate("Dialog", "EXCEL导出"))
         self.label_2.setText(_translate("Dialog", "未打开excel"))

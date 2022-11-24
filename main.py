@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import QSettings, QDateTime, Qt
+import ocrTest
 
 #py文件名称
 import test
@@ -22,6 +24,9 @@ class Example(test.Ui_Dialog):
         self.pushButton_2.clicked.connect(self.creat_table_show)
         self.pushButton_3.clicked.connect(self.menu_list_confirm)
         self.pushButton_4.clicked.connect(self.save_table_excel)
+        # table widget 右键菜单 放在主窗口__init__(self):下
+        self.tableWidget.setContextMenuPolicy(Qt.CustomContextMenu)  # 允许右键产生子菜单
+        self.tableWidget.customContextMenuRequested.connect(self.tableWidget_VTest_menu)  # 右键菜单
 
     # def closeEvent(self, event):
     #     reply = QtWidgets.QMessageBox.question(self, '确认', '确认退出吗', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
@@ -109,6 +114,8 @@ class Example(test.Ui_Dialog):
             self.warning_box('未选择功能')
         elif self.comboBox.currentText().__eq__("切换打开下一个工作簿"):
             self.change_next_sheet()
+        elif self.comboBox.currentText().__eq__("图像识别输出到右侧单元格"):
+            self.download_and_ocr()
 
 
     def change_next_sheet(self):
@@ -125,7 +132,92 @@ class Example(test.Ui_Dialog):
                 sheet_index = sheet_index + 1
                 self.creat_table_show_index(sheet_index)
 
+    #右键点击菜单
+    def tableWidget_VTest_menu(self, pos):
+        """
+        :return:
+        """
+        menu = QtWidgets.QMenu() #实例化菜单
+        item1 = menu.addAction(u"添加单个单元格")
+        item2 = menu.addAction(u"添加整列")
+        item3 = menu.addAction(u"清除选中并刷新")
+        action = menu.exec_(self.tableWidget.mapToGlobal(pos))
 
+        if action == item1:
+            self.on_menu_add_cell()
+            print("添加单个单元格")
+        elif action == item2:
+            self.on_menu_add_column()
+            print("添加整列")
+        elif action == item3:
+            self.clear_select_cell()
+            print("清除选中并刷新")
+
+    # 添加的单元格和列
+    global index_cell
+    index_cell = []
+    global index_column
+    index_column = []
+    def on_menu_add_cell(self):
+        # 通过selectedIndexes方法可以获得点中的所有项
+        selected_indexes = self.tableWidget.selectedIndexes()
+        if len(selected_indexes) > 0:
+            data_idx = selected_indexes[0].row()
+            data_idx_c = selected_indexes[0].column()
+            data = self.tableWidget.item(data_idx, data_idx_c).text()
+            print(f'row -> {[data_idx]} column -> {[data_idx_c]} data -> {[data]}')
+            #添加这个单元格到数组内
+            index_cell.append(f'{data_idx},{data_idx_c}')
+            # 背景颜色（红色）
+            self.tableWidget.item(data_idx, data_idx_c).setBackground(QtGui.QBrush(QtGui.QColor(255, 0, 0)))
+
+
+    def on_menu_add_column(self):
+        # 通过selectedIndexes方法可以获得点中的所有项
+        selected_indexes = self.tableWidget.selectedIndexes()
+        if len(selected_indexes) > 0:
+            data_idx_c = selected_indexes[0].column()
+            print(f'column -> {data_idx_c}')
+            #添加这个单元格到数组内
+            index_column.append(f'{data_idx_c}')
+            for i in range(self.tableWidget.rowCount()):
+                for j in range(self.tableWidget.columnCount()):
+                    if j.__eq__(data_idx_c):
+                        # 背景颜色（红色）
+                        self.tableWidget.item(i, j).setBackground(QtGui.QBrush(QtGui.QColor(255, 0, 0)))
+
+    def download_and_ocr(self):
+        global input_table
+        if len(index_cell) > 0:
+            print(index_cell)
+            for cell in index_cell:
+                cell_str = str(cell)
+                print(self.tableWidget.item(int(cell_str.split(',')[0]), int(cell_str.split(',')[1])).text())
+                path = ocrTest.download_url(str(self.tableWidget.item(int(cell_str.split(',')[0]), int(cell_str.split(',')[1])).text()))
+                ocr_result = ocrTest.pic_ocr(path)
+                if (ocr_result is not None) and (not ''.__eq__(ocr_result)):
+                    self.tableWidget.item(int(cell_str.split(',')[0]), int(cell_str.split(',')[1]) + 1).setText(ocr_result)
+                    input_table.iloc[int(cell_str.split(',')[0]), int(cell_str.split(',')[1]) + 1] = ocr_result
+        if len(index_column) > 0:
+            print(index_column)
+            for column in index_column:
+                for i in range(self.tableWidget.rowCount()):
+                    path = ocrTest.download_url(str(self.tableWidget.item(i, int(column)).text()))
+                    ocr_result = ocrTest.pic_ocr(path)
+                    if (ocr_result is not None) and (not ''.__eq__(ocr_result)):
+                        self.tableWidget.item(i, int(column) + 1).setText(ocr_result)
+                        input_table.iloc[i, int(column) + 1] = ocr_result
+    def clear_select_cell(self):
+        global index_cell
+        index_cell = []
+        global index_column
+        index_column = []
+        global path_openfile_name
+        global sheet_index
+        global sheet_size
+        path_openfile_name = self.textEdit.toPlainText()
+        if len(path_openfile_name) > 0:
+            self.creat_table_show_index(sheet_index)
 
 # 程序入口
 if __name__ == '__main__':

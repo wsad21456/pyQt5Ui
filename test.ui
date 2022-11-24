@@ -70,7 +70,7 @@ p, li { white-space: pre-wrap; }
        </item>
        <item>
         <property name="text">
-         <string>00002</string>
+         <string>图像识别输出到右侧单元格</string>
         </property>
        </item>
       </widget>
