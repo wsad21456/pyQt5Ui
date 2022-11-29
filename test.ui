@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>560</width>
-    <height>500</height>
+    <width>1200</width>
+    <height>600</height>
    </rect>
+  </property>
+  <property name="mouseTracking">
+   <bool>true</bool>
+  </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
@@ -73,6 +79,11 @@ p, li { white-space: pre-wrap; }
          <string>图像识别输出到右侧单元格</string>
         </property>
        </item>
+       <item>
+        <property name="text">
+         <string>拖拽文件识别到excel格中</string>
+        </property>
+       </item>
       </widget>
      </item>
      <item row="0" column="2">
@@ -106,7 +117,17 @@ p, li { white-space: pre-wrap; }
     </widget>
    </item>
    <item row="3" column="0">
-    <widget class="QTableWidget" name="tableWidget"/>
+    <widget class="QTableWidget" name="tableWidget">
+     <property name="mouseTracking">
+      <bool>true</bool>
+     </property>
+     <property name="tabletTracking">
+      <bool>true</bool>
+     </property>
+     <property name="acceptDrops">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

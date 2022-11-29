@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtCore import QSettings, QDateTime, Qt
 import ocrTest
 
@@ -20,6 +21,7 @@ class Example(test.Ui_Dialog):
 
     def __init__(self, Dialog):
         super().setupUi(Dialog)  # 调用父类的setupUI函数
+        self.textEdit.textChanged.connect(self.edit_change)
         self.pushButton.clicked.connect(self.setBrowerPath)  # 将按钮点击事件和函数绑定
         self.pushButton_2.clicked.connect(self.creat_table_show)
         self.pushButton_3.clicked.connect(self.menu_list_confirm)
@@ -27,6 +29,8 @@ class Example(test.Ui_Dialog):
         # table widget 右键菜单 放在主窗口__init__(self):下
         self.tableWidget.setContextMenuPolicy(Qt.CustomContextMenu)  # 允许右键产生子菜单
         self.tableWidget.customContextMenuRequested.connect(self.tableWidget_VTest_menu)  # 右键菜单
+        self.tableWidget.itemClicked.connect(self.show_data) # 鼠标单击
+
 
     # def closeEvent(self, event):
     #     reply = QtWidgets.QMessageBox.question(self, '确认', '确认退出吗', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
@@ -45,6 +49,10 @@ class Example(test.Ui_Dialog):
 
     def success_box(self):
         QtWidgets.QMessageBox.information(None, '成功', '文件已导出')
+
+    def edit_change(self):
+        if self.textEdit.toPlainText().find('file:///') >= 0:
+            self.textEdit.setText(self.textEdit.toPlainText().replace('file:///', ''))
 
     # 选择excel文件路径
     def setBrowerPath(self):
@@ -94,6 +102,7 @@ class Example(test.Ui_Dialog):
                     self.tableWidget.setItem(i, j, newItem)
 
         else:
+            path_openfile_name = ''
             self.warning_box('未选择文件')
 
 
@@ -101,14 +110,17 @@ class Example(test.Ui_Dialog):
     def save_table_excel(self):
         global path_openfile_name
         global input_table
-        path_openfile_name = self.textEdit.toPlainText()
-        if len(path_openfile_name) == 0:
+        try:
+            if len(path_openfile_name) == 0:
+                self.warning_box('未选择文件')
+            else:
+                out_file_name = str(path_openfile_name).replace(".", "_out.")
+                pd.DataFrame(input_table).to_excel(out_file_name, sheet_name='Sheet1', index=False, header=True)
+                self.success_box()
+        except NameError:
             self.warning_box('未选择文件')
-        else:
-            out_file_name = str(path_openfile_name).replace(".", "_out.")
-            pd.DataFrame(input_table).to_excel(out_file_name, sheet_name='Sheet1', index=False, header=True)
-            self.success_box()
 
+    # 功能菜单
     def menu_list_confirm(self):
         if self.comboBox.currentText().__eq__("常用功能"):
             self.warning_box('未选择功能')
@@ -120,8 +132,10 @@ class Example(test.Ui_Dialog):
                 self.download_and_ocr(True)
             else:
                 self.download_and_ocr(False)
+        elif self.comboBox.currentText().__eq__("拖拽文件识别到excel格中"):
+            self.local_url_ocr()
 
-
+    # 切换打开下一个工作簿
     def change_next_sheet(self):
         global path_openfile_name
         global input_table
@@ -157,7 +171,7 @@ class Example(test.Ui_Dialog):
             self.clear_select_cell()
             print("清除选中并刷新")
 
-    # 添加的单元格和列
+    # 添加单元格
     global index_cell
     index_cell = []
     global index_column
@@ -175,7 +189,7 @@ class Example(test.Ui_Dialog):
             # 背景颜色（红色）
             self.tableWidget.item(data_idx, data_idx_c).setBackground(QtGui.QBrush(QtGui.QColor(255, 0, 0)))
 
-
+    # 表格添加整列
     def on_menu_add_column(self):
         # 通过selectedIndexes方法可以获得点中的所有项
         selected_indexes = self.tableWidget.selectedIndexes()
@@ -190,6 +204,7 @@ class Example(test.Ui_Dialog):
                         # 背景颜色（红色）
                         self.tableWidget.item(i, j).setBackground(QtGui.QBrush(QtGui.QColor(255, 0, 0)))
 
+    # 下载并ocr识别
     def download_and_ocr(self, gpu_boolean):
         global input_table
         if len(index_cell) > 0:
@@ -211,6 +226,8 @@ class Example(test.Ui_Dialog):
                     if (ocr_result is not None) and (not ''.__eq__(ocr_result)):
                         self.tableWidget.item(i, int(column) + 1).setText(ocr_result)
                         input_table.iloc[i, int(column) + 1] = ocr_result
+
+    # 清除标红的单元格
     def clear_select_cell(self):
         global index_cell
         index_cell = []
@@ -222,6 +239,36 @@ class Example(test.Ui_Dialog):
         path_openfile_name = self.textEdit.toPlainText()
         if len(path_openfile_name) > 0:
             self.creat_table_show_index(sheet_index)
+
+
+    # 这里会接收到被点击的单元格对象参数
+    def show_data(self, Item=None):
+        # 如果单元格对象为空
+        if Item is None:
+            return
+        else:
+            global data_row
+            global data_col
+            data_row = Item.row()  # 获取行数
+            data_col = Item.column()  # 获取列数 注意是column而不是col哦
+            # text = Item.text()  # 获取内容
+
+    # 拖拽文件识别到excel格中
+    def local_url_ocr(self):
+        global data_row
+        global data_col
+        global input_table
+        try:
+            result = str(ocrTest.pic_ocr(self.textEdit.toPlainText()))
+        except:
+            self.warning_box('文件OCR识别失败')
+        try:
+            newItem = QtWidgets.QTableWidgetItem(result, True)
+            newItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+            self.tableWidget.setItem(data_row, data_col, newItem)
+            input_table.iloc[data_row, data_col] = result
+        except NameError:
+            self.warning_box('未选择excel单元格')
 
 # 程序入口
 if __name__ == '__main__':
