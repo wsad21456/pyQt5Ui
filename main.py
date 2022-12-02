@@ -259,7 +259,7 @@ class Example(test.Ui_Dialog):
         global data_col
         global input_table
         try:
-            result = str(ocrTest.pic_ocr(self.textEdit.toPlainText()))
+            result = str(ocrTest.pic_ocr(self.textEdit.toPlainText(), True))
         except:
             self.warning_box('文件OCR识别失败')
         try:
