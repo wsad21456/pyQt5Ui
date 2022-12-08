@@ -58,6 +58,13 @@ p, li { white-space: pre-wrap; }
            </property>
           </widget>
          </item>
+         <item row="1" column="0">
+          <widget class="QPushButton" name="pushButton_5">
+           <property name="text">
+            <string>清除</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -117,16 +124,29 @@ p, li { white-space: pre-wrap; }
     </widget>
    </item>
    <item row="3" column="0">
-    <widget class="QTableWidget" name="tableWidget">
-     <property name="mouseTracking">
-      <bool>true</bool>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
      </property>
-     <property name="tabletTracking">
-      <bool>true</bool>
-     </property>
-     <property name="acceptDrops">
-      <bool>true</bool>
-     </property>
+     <widget class="QTableWidget" name="tableWidget">
+      <property name="mouseTracking">
+       <bool>true</bool>
+      </property>
+      <property name="tabletTracking">
+       <bool>true</bool>
+      </property>
+      <property name="acceptDrops">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QTextBrowser" name="textBrowser">
+      <property name="contextMenuPolicy">
+       <enum>Qt::CustomContextMenu</enum>
+      </property>
+      <property name="readOnly">
+       <bool>false</bool>
+      </property>
+     </widget>
     </widget>
    </item>
   </layout>

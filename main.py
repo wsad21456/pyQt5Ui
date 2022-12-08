@@ -26,11 +26,12 @@ class Example(test.Ui_Dialog):
         self.pushButton_2.clicked.connect(self.creat_table_show)
         self.pushButton_3.clicked.connect(self.menu_list_confirm)
         self.pushButton_4.clicked.connect(self.save_table_excel)
+        self.pushButton_5.clicked.connect(self.clear_text)
         # table widget 右键菜单 放在主窗口__init__(self):下
         self.tableWidget.setContextMenuPolicy(Qt.CustomContextMenu)  # 允许右键产生子菜单
         self.tableWidget.customContextMenuRequested.connect(self.tableWidget_VTest_menu)  # 右键菜单
         self.tableWidget.itemClicked.connect(self.show_data) # 鼠标单击
-
+        self.textBrowser.customContextMenuRequested.connect(self.text_browser_VTest_menu)  # 右键菜单
 
     # def closeEvent(self, event):
     #     reply = QtWidgets.QMessageBox.question(self, '确认', '确认退出吗', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
@@ -43,6 +44,8 @@ class Example(test.Ui_Dialog):
         # sender = self.sender()
         print( '被点击')
 
+    def clear_text(self):
+        self.textEdit.clear()
 
     def warning_box(self, msg):
         QtWidgets.QMessageBox.warning(None, '警告', msg)
@@ -77,7 +80,7 @@ class Example(test.Ui_Dialog):
         path_openfile_name = self.textEdit.toPlainText()
         if len(path_openfile_name) > 0:
             sheet_index = index
-            input_table = pd.read_excel(path_openfile_name, sheet_name=sheet_index)
+            input_table = pd.read_excel(path_openfile_name, sheet_name=sheet_index, dtype="str")
             excel_file = pd.ExcelFile(path_openfile_name)
             sheet_size = len(excel_file.sheet_names)
             input_table_rows = input_table.shape[0]
@@ -171,6 +174,23 @@ class Example(test.Ui_Dialog):
             self.clear_select_cell()
             print("清除选中并刷新")
 
+    #右键点击菜单
+    def text_browser_VTest_menu(self, pos):
+        """
+        :return:
+        """
+        menu = QtWidgets.QMenu() #实例化菜单
+        item1 = menu.addAction(u"添加进excel")
+        item2 = menu.addAction(u"全部添加进excel")
+        action = menu.exec_(self.textBrowser.mapToGlobal(pos))
+
+        if action == item1:
+            self.text_add_excel()
+            print("添加单个单元格")
+        elif action == item2:
+            self.text_add_excel()
+            print("添加整列")
+
     # 添加单元格
     global index_cell
     index_cell = []
@@ -255,21 +275,26 @@ class Example(test.Ui_Dialog):
 
     # 拖拽文件识别到excel格中
     def local_url_ocr(self):
-        global data_row
-        global data_col
-        global input_table
         try:
             result = str(ocrTest.pic_ocr(self.textEdit.toPlainText(), True))
         except:
             self.warning_box('文件OCR识别失败')
+        self.textBrowser.setText(result)
+
+
+    #添加文本进入excel
+    def text_add_excel(self):
+        global data_row
+        global data_col
+        global input_table
         try:
-            newItem = QtWidgets.QTableWidgetItem(result, True)
+            text_data = self.textBrowser.textCursor().selectedText()
+            newItem = QtWidgets.QTableWidgetItem(text_data, True)
             newItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
             self.tableWidget.setItem(data_row, data_col, newItem)
-            input_table.iloc[data_row, data_col] = result
+            input_table.iloc[data_row, data_col] = text_data
         except NameError:
             self.warning_box('未选择excel单元格')
-
 # 程序入口
 if __name__ == '__main__':
     # app = QtWidgets.QApplication(sys.argv)
