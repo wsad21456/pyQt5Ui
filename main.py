@@ -186,10 +186,10 @@ class Example(test.Ui_Dialog):
 
         if action == item1:
             self.text_add_excel()
-            print("添加单个单元格")
+            print("添加进excel")
         elif action == item2:
             self.text_add_excel()
-            print("添加整列")
+            print("全部添加进excel")
 
     # 添加单元格
     global index_cell

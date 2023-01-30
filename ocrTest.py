@@ -65,8 +65,31 @@ def download_url(url):
 #     for line in res:
 #         print(line)
 
+#截圖TEST
+from PyQt5.QtWidgets import QApplication
+import win32gui
+import sys
+hwnd_title = dict()
+def get_all_hwnd(hwnd, mouse):
+    if win32gui.IsWindow(hwnd) and win32gui.IsWindowEnabled(hwnd) and win32gui.IsWindowVisible(hwnd):
+        hwnd_title.update({hwnd:win32gui.GetWindowText(hwnd)})
+def print_windows_name():
+    win32gui.EnumWindows(get_all_hwnd, 0)
+    for h, t in hwnd_title.items():
+        if t != "" and t is not None:
+            print(h, t)#打印當前所有進程名稱，按窗口順序顯示
+def screen_pic():
+    #輸入對應的窗口句柄名稱進行截圖
+    hwnd = win32gui.FindWindow(None, 'pyQt5Ui – ocrTest.py')#如果輸入不存在的句柄名稱，返回的是當前全部的截圖
+    app = QApplication(sys.argv)
+    screen = QApplication.primaryScreen()
+    img = screen.grabWindow(hwnd).toImage()
+    img.save("download_imgs/screenshot.jpg")
+
 # 程序入口
 if __name__ == '__main__':
-    path = download_url('http://antpython.net/static/pubdatas/webspider/goodimgs/1.jpeg')
-    result_str = pic_ocr(path)
-    print(result_str)
+    # path = download_url('http://antpython.net/static/pubdatas/webspider/goodimgs/1.jpeg')
+    # result_str = pic_ocr(path)
+    # print(result_str)
+    print_windows_name()#打印當前所有進程名稱，按窗口順序顯示
+    screen_pic()#截圖
